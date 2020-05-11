@@ -5,8 +5,8 @@ from models.lane_detection.calibration_utils import calibrate_camera, undistort
 from models.lane_detection.globals import xm_per_pix, time_window
 from models.lane_detection.line_utils import get_fits_by_sliding_windows, Line, get_fits_by_previous_fits
 from models.lane_detection.perspective_utils import birdeye
-from models.vehicle_detection.lane import *
-from models.vehicle_detection.yolo_pipeline import *
+from models.vehicle_detectionn.lane import *
+from models.vehicle_detectionn.yolo_pipeline import *
 
 
 def pipeline_yolo(img):
