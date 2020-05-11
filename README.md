@@ -1,6 +1,11 @@
 Flask app for cloud models of drivision
 
 Download vehicle detection checkpoint from: https://drive.google.com/file/d/0B5WIzrIVeL0WS3N2VklTVmstelE/view and put it to the models/vehicle_detection/weights folder
+or
+run : 
+pip install gdown
+gdown --id 0B5WIzrIVeL0WS3N2VklTVmstelE
+to download checkpoint 
 ## HOW TO RUN (WITH DOCKER)
 sudo docker-compose up --build 
 
