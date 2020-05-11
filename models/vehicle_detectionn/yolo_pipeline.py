@@ -1,8 +1,8 @@
 # import numpy as np
 # import cv2
 from timeit import default_timer as timer
-
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 
 # import time
 # import matplotlib.pyplot as plt

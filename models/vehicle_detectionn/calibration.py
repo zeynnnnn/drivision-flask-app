@@ -1,9 +1,5 @@
 """calibration.py: Calibration the cameras and save the calibration results."""
 
-__author__ = "Junsheng Fu"
-__email__ = "junsheng.fu@yahoo.com"
-__date__ = "March 2017"
-
 import numpy as np
 import cv2
 import glob
