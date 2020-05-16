@@ -9,6 +9,7 @@ import cv2
 import tensorflow as tf
 import glog as log
 from models.lane_detection_lanenet.lanenet_model import lanenet_postprocess, lanenet, global_config
+import time
 
 from models.lane_detection.binarization_utils import binarize
 from models.lane_detection.calibration_utils import calibrate_camera, undistort
@@ -19,27 +20,24 @@ from models.vehicle_detectionn.lane import *
 from models.vehicle_detectionn.yolo_pipeline import *
 
 CFG = global_config.cfg
+net = lanenet.LaneNet(phase='test', net_flag='vgg', reuse=tf.AUTO_REUSE)
+postprocessor = lanenet_postprocess.LaneNetPostProcessor()
 
 
 def process_lane_recognition_model(image):
 
     weights_path="models/lane_detection_lanenet/downloaded_model/tusimple_lanenet_vgg.ckpt"
 
-    #preprocess
+    # preprocess
     image_vis = image
     image = cv2.resize(image, (512, 256), interpolation=cv2.INTER_LINEAR)
     image = image / 127.5 - 1.0
     log.info('Image load complete')
 
-    #model run
+    # model run
     tf.compat.v1.disable_eager_execution()
     input_tensor = tf.compat.v1.placeholder(dtype=tf.float32, shape=[1, 256, 512, 3], name='input_tensor')
-
-    net = lanenet.LaneNet(phase='test', net_flag='vgg')
     binary_seg_ret, instance_seg_ret = net.inference(input_tensor=input_tensor, name='lanenet_model')
-
-    postprocessor = lanenet_postprocess.LaneNetPostProcessor()
-
     saver = tf.compat.v1.train.Saver()
 
     # Set sess configuration
@@ -61,15 +59,11 @@ def process_lane_recognition_model(image):
             instance_seg_result=instance_seg_image[0],
             source_image=image_vis
         )
-        # img = np.reshape(binary_seg_image[0] * 255, (binary_seg_image[0].shape[0], binary_seg_image[0].shape[1], 1))
-        # lines = cv2.HoughLines(img, 1, np.pi/180, 200)
-        # print(type(lines))
         mask_image = postprocess_result['mask_image']
 
         for i in range(CFG.TRAIN.EMBEDDING_FEATS_DIMS):
             instance_seg_image[0][:, :, i] = minmax_scale(instance_seg_image[0][:, :, i])
         embedding_image = np.array(instance_seg_image[0], np.uint8)
-
     lists = mask_image[:, :, (2, 1, 0)].tolist()
     json_str = json.dumps(lists)
     # encoded_img = base64.encodebytes(img_byte_arr.getvalue()).decode('ascii')
@@ -193,17 +187,20 @@ def vehicle_method(img):
 @app.route('/predict', methods=['POST'])
 def get_prediction():
     vehicles =[]
+    load_times = []
     for key in request.files:
         filestr = request.files[key].read()  # "file" key'i ile gonderilen resmi al
         npimg = np.frombuffer(filestr, np.uint8)
         image = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
-        lane_image = process_lane_recognition_model(image)
+        load_time = process_lane_recognition_model(image)
+        load_times.append('Lane: ' + str(load_time))
         # distance_from_center = process_pipeline(image, keep_state=False)
         # distance_from_center_arr.append(distance_from_center)
-        vehicles.append(vehicle_method(image))
+        vehicle = vehicle_method(image)
+        vehicles.append(vehicle)
 
     print(vehicles)
-    return jsonify(vehicles=json.dumps(str(vehicles)))
+    return jsonify(vehicles=json.dumps(str(vehicles)), time=json.dumps(load_times))
 
 
 if __name__ == '__main__':
