@@ -198,9 +198,8 @@ def get_prediction():
         # distance_from_center_arr.append(distance_from_center)
         vehicle = vehicle_method(image)
         vehicles.append(vehicle)
-
-    print(vehicles)
-    return jsonify(vehicles=json.dumps(str(vehicles)), time=json.dumps(load_times))
+    device = tf.test.gpu_device_name()
+    return jsonify(vehicles=json.dumps(str(vehicles)), time=json.dumps(device))
 
 
 if __name__ == '__main__':
